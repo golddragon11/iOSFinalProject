@@ -6,21 +6,25 @@ struct UserView: View {
     @State private var showEditView = false
     @State private var confirmLogout = false
     @State private var angle: Double = 0.0
-    @State private var test = true
+    @State private var show = false
     let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     var body: some View {
         NavigationLink(destination: EditUserInfo(userData: $userData.user), isActive: $showEditView, label: {})
         VStack {
             HStack {
-                if let userImage = loadImage(fileName: userData.user.imageName) {
-                    Image(uiImage: userImage)
-                        .resizable()
-                        .frame(width: 80, height: 80, alignment: .center)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
-                        .resizable()
-                        .frame(width: 80, height: 80, alignment: .center)
+                if show {
+                    if let userImage = loadImage(fileName: userData.user.imageName) {
+                        Image(uiImage: userImage)
+                            .resizable()
+                            .frame(width: 80, height: 80, alignment: .center)
+                            .clipShape(Circle())
+                            .transition(.slide)
+                    } else {
+                        Image(systemName: "person")
+                            .resizable()
+                            .frame(width: 80, height: 80, alignment: .center)
+                            .transition(.slide)
+                    }
                 }
                 Text(userData.user.name)
                     .font(.title)
@@ -61,6 +65,11 @@ struct UserView: View {
         .navigationBarItems(trailing: Button(action: { showEditView = true }, label: { Text("Edit") }))
         .alert(isPresented: $confirmLogout) { () -> Alert in
             return Alert(title: Text("Logout Successful"))
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 3)) {
+                self.show = true
+            }
         }
     }
     
