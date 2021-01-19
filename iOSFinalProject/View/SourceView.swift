@@ -20,7 +20,8 @@ struct SourceView: View {
         }
         .navigationTitle(sourceName)
         .onAppear(perform: {
-            searchViewModel.fetchSearchSource(source: sourceName)
+            print(sourceName)
+            searchViewModel.fetchSearch(keyword: sourceName)
         })
     }
 }

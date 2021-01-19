@@ -2,6 +2,10 @@ import SwiftUI
 import CoreData
 import UIKit
 
+enum ActiveSheet {
+    case share, safari
+}
+
 struct NewsPreview: View {
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -15,57 +19,67 @@ struct NewsPreview: View {
         animation: .default)
     private var sources: FetchedResults<Source>
     
+    @State private var showSheet = false
+    @State private var activeSheet: ActiveSheet = .safari
     @State private var showWebPage = false
     @State private var showShareView = false
     let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     var article: article
     var body: some View {
-        Button(action: { showWebPage = true }){
-            HStack {
-                NetworkImage(url: URL(string: article.urlToImage ?? "")!)
-                VStack {
-                    Text(article.title)
-                        .font(.title2)
-                    Text(article.description ?? "")
-                        .font(.caption2)
-                        .frame(width: 210)
-                    HStack {
-                        Spacer()
-                        Image(article.source.name)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 20)
-                        Text(article.source.name)
-                            .font(.footnote)
-                    }
-                }
-            }
-            .contextMenu {
-                Button(action: {
-                    addArticle(article: article)
-                }) {
-                    Image(systemName: "bookmark")
-                    Text("Save article")
-                }
-                Button(action: {
-                    addSource(source: article.source.name)
-                }) {
-                    Image(systemName: "plus.app")
-                    Text("Subscribe to source")
-                }
-                Button(action: {
-                    showShareView.toggle()
-                }) {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Share")
+        HStack {
+            NetworkImage(url: URL(string: article.urlToImage ?? "https://www.google.com/url?sa=i&url=https%3A%2F%2Fuxwing.com%2Fimage-not-found-icon%2F&psig=AOvVaw1kK9peNfJ3BpXwn4SRSLbT&ust=1611109442272000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCKi9ssP4pu4CFQAAAAAdAAAAABAD")!)
+            VStack {
+                Text(article.title)
+                    .font(.title2)
+                Text(article.description ?? "")
+                    .font(.caption2)
+                    .frame(width: 210)
+                HStack {
+                    Spacer()
+                    Image(article.source.name)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 20)
+                    Text(article.source.name)
+                        .font(.footnote)
                 }
             }
         }
-        .sheet(isPresented: $showWebPage, content: {
-            SafariView(url: URL(string: article.url)!)
-        })
-        .sheet(isPresented: $showShareView, content: {
-            ShareView(url: URL(string: article.url)!)
+        .contextMenu {
+            Button(action: {
+                addArticle(article: article)
+            }) {
+                Image(systemName: "bookmark")
+                Text("Save article")
+            }
+            Button(action: {
+                addSource(source: article.source.name)
+            }) {
+                Image(systemName: "plus.app")
+                Text("Subscribe to source")
+            }
+            Button(action: {
+                activeSheet = .share
+                showSheet.toggle()
+            }) {
+                Image(systemName: "square.and.arrow.up")
+                Text("Share")
+            }
+        }
+        .onTapGesture(count: 2) {
+            activeSheet = .share
+            showSheet.toggle()
+        }
+        .onTapGesture(count: 1) {
+            activeSheet = .safari
+            showSheet.toggle()
+        }
+        .sheet(isPresented: $showSheet, content: {
+            if self.activeSheet == .safari {
+                SafariView(url: URL(string: article.url)!)
+            } else {
+                ShareView(url: URL(string: article.url)!)
+            }
         })
         .frame(height: 150)
     }
